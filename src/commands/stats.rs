@@ -7,7 +7,7 @@ use crate::commands::utils;
 // #[serde(rename_all = "camelCase")]
 struct Bedwars {
     #[serde(alias = "Experience")]
-    experience: Option<i32>,
+    experience: Option<f32>,
     final_kills_bedwars: Option<i32>,
     final_deaths_bedwars: Option<i32>,
     wins_bedwars: Option<i32>,
@@ -17,7 +17,7 @@ struct Bedwars {
 impl Default for Bedwars {
     fn default() -> Self {
         Bedwars {
-            experience: Some(0),
+            experience: Some(0.0),
             final_kills_bedwars: Some(0),
             final_deaths_bedwars: Some(0),
             wins_bedwars: Some(0),
@@ -67,7 +67,7 @@ pub async fn get_stats<'a>(
         let player = resp.player.unwrap();
         let stats = player.stats.unwrap();
         if let Some(bedwars_stats) = stats.bedwars {
-            let level = xp_to_level(bedwars_stats.experience.unwrap_or_default());
+            let level = xp_to_level(bedwars_stats.experience.unwrap_or_default() as i32);
             let level_str = format!("Level {:.2}", level);
             let wins = bedwars_stats.wins_bedwars.unwrap_or_default();
             let final_kills = bedwars_stats.final_kills_bedwars.unwrap_or_default();
