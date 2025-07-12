@@ -22,13 +22,14 @@ impl EventHandler for Bot {
             // Analyse the /who command for bedwars stats
             let csv_igns = &msg.content[8..];
             let igns = csv_igns.split(", ");
-            let mut message = String::new();
+            let mut message = String::from("```ansi\n");
             for ign in igns {
                 match stats::get_stats(ign, &self.client, &self.api_key).await {
                     Ok(msg) => message.push_str(format!("{}\n", msg).as_str()),
                     Err(e) => message.push_str(format!("Error: {}\n", e).as_str())
                 };
             }
+            message.push_str("```");
             if let Err(e) = msg.channel_id.say(&ctx.http, message).await {
                 error!("Error sending message: {:?}", e);
             }

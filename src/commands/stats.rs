@@ -52,7 +52,7 @@ pub async fn get_stats<'a>(
 ) -> Result<String, Box<dyn std::error::Error>> {
     let uuid_res = utils::get_uuid(ign, client).await;
     if let Err(_) = uuid_res {
-        return Ok(format!("**__{}__**: Nicked!", ign));
+        return Ok(format!("{}: Nicked!", bold_and_underline(ign)));
     }
     let url = format!(
         "https://api.hypixel.net/v2/player?uuid={}&key={}",
@@ -120,5 +120,5 @@ fn xp_to_level(xp: i32) -> f32 {
 }
 
 fn bold_and_underline(text: &str) -> String {
-    format!("**__{}__**", text)
+    format!("\u{001B}[1;4;31m{}\u{001B}[0m", text)
 }
