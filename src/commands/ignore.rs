@@ -10,39 +10,39 @@ pub async fn run<'a>(
     let mut data = ctx.data.write().await;
     let ignore_list_map = data.get_mut::<IgnoreList>().unwrap();
     let ignore_list = ignore_list_map.entry("IgnoreList".into()).or_insert(Vec::new());
-    let mut options_iter = options.iter();
-    if let Some(ResolvedOption {
+
+    if options.len() != 2 {
+        return String::from("Invalid number of options");
+    }
+    
+    if let [ResolvedOption {
         value: ResolvedValue::String(action),
         ..
-    }) = options_iter.next() {
-        if let Some(ResolvedOption {
-            value: ResolvedValue::String(ign),
-            ..
-        }) = options_iter.next() {
-            match *action {
-                "add" => {
-                    ignore_list.push(String::from(*ign));
-                    format!("Successfully added {} to the ignore list", *ign)
-                },
-                "remove" => {
-                    let index = ignore_list.iter().position(|x| x == *ign);
-                    match index {
-                        Some(i) => {
-                            ignore_list.remove(i);
-                            format!("Successfully removed {} from the ignore list", *ign)
-                        },
-                        None => {
-                            format!("Could not find {} in the ignore list", *ign)
-                        }
+    }, ResolvedOption {
+        value: ResolvedValue::String(ign),
+        ..
+    }] = options {
+        match *action {
+            "add" => {
+                ignore_list.push(String::from(*ign));
+                format!("Successfully added {} to the ignore list", *ign)
+            },
+            "remove" => {
+                let index = ignore_list.iter().position(|x| x == *ign);
+                match index {
+                    Some(i) => {
+                        ignore_list.remove(i);
+                        format!("Successfully removed {} from the ignore list", *ign)
+                    },
+                    None => {
+                        format!("Could not find {} in the ignore list", *ign)
                     }
-                },
-                "list" => {
-                    format!("The current ignore list is:\n{}", ignore_list.join("\n"))
                 }
-                _ => String::from("Please provide a valid action")
+            },
+            "list" => {
+                format!("The current ignore list is:\n{}", ignore_list.join("\n"))
             }
-        } else {
-            String::from("Please provide a valid IGN")
+            _ => String::from("Please provide a valid action")
         }
     } else {
         String::from("Please provide a valid action and IGN")
