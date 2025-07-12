@@ -67,27 +67,7 @@ pub async fn get_stats<'a>(
         let player = resp.player.unwrap();
         let stats = player.stats.unwrap();
         if let Some(bedwars_stats) = stats.bedwars {
-            let mut level: f32 = 0.0;
-            let mut experience = bedwars_stats.experience.unwrap_or_default();
-            if experience > 7000 {
-                experience -= 7000;
-                level += 4.0;
-                level += (experience as f32) / 5000.0;
-            } else if experience > 3500 {
-                experience -= 3500;
-                level += 3.0;
-                level += (experience as f32) / 3500.0;
-            } else if experience > 1500 {
-                experience -= 1500;
-                level += 2.0;
-                level += (experience as f32) / 2000.0;
-            } else if experience > 500 {
-                experience -= 500;
-                level += 1.0;
-                level += (experience as f32) / 1000.0;
-            } else {
-                level += (experience as f32) / 500.0;
-            }
+            let level = xp_to_level(bedwars_stats.experience.unwrap_or_default());
             let wins = bedwars_stats.wins_bedwars.unwrap_or_default();
             let final_kills = bedwars_stats.final_kills_bedwars.unwrap_or_default();
             let wlr: f32 = wins as f32 / bedwars_stats.losses_bedwars.unwrap_or_default() as f32;
@@ -98,4 +78,32 @@ pub async fn get_stats<'a>(
         }
     }
 }
+
+fn xp_to_level(xp: i32) -> f32 {
+    if xp == 0 {
+        return 0.0;
+    }
+
+    const FIRST_FOUR: [i32; 4] = [500, 1000, 2000, 3500];
+    const FIRST_FOUR_TOTAL: i32 = 7000;
+    const TOTAL_PRESTIGE: i32 = FIRST_FOUR_TOTAL + 96 * 5000;
     
+    let mut level = 0.0;
+    let prestiges: i32 = xp / TOTAL_PRESTIGE;
+    level += 100.0 * prestiges as f32;
+
+    let mut extra_xp: i32 = xp - (prestiges * TOTAL_PRESTIGE);
+    for level_xp in FIRST_FOUR {
+        if extra_xp < level_xp {
+            level += (extra_xp as f32) / (level_xp as f32);
+            extra_xp = 0;
+            break;
+        }
+        level += 1.0;
+        extra_xp -= level_xp;
+    }
+    if extra_xp > 0 {
+        level += (extra_xp as f32) / 5000.0
+    }
+    level
+}
