@@ -52,7 +52,7 @@ pub async fn get_stats<'a>(
 ) -> Result<String, Box<dyn std::error::Error>> {
     let uuid_res = utils::get_uuid(ign, client).await;
     if let Err(_) = uuid_res {
-        return Ok(format!("{} is nicked!", ign));
+        return Ok(format!("**__{}__**: Nicked!", ign));
     }
     let url = format!(
         "https://api.hypixel.net/v2/player?uuid={}&key={}",
@@ -72,7 +72,7 @@ pub async fn get_stats<'a>(
             let final_kills = bedwars_stats.final_kills_bedwars.unwrap_or_default();
             let wlr: f32 = wins as f32 / bedwars_stats.losses_bedwars.unwrap_or_default() as f32;
             let fkdr: f32 = final_kills as f32 / bedwars_stats.final_deaths_bedwars.unwrap_or_default() as f32;
-            Ok(format!("{}: Level {:.2}, Wins: {}, WLR: {:.2}, Finals: {}, FKDR: {:.2}", ign, level, wins, wlr, final_kills, fkdr))
+            Ok(format!("**__{}__**: Level **{:.2}**, Wins: **{}**, WLR: **{:.2}**, Finals: **{}**, FKDR: **{:.2}**", ign, level, wins, wlr, final_kills, fkdr))
         } else {
             Err("Unable to retrieve bedwars stats".into())
         }
