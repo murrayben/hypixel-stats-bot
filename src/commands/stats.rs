@@ -68,11 +68,22 @@ pub async fn get_stats<'a>(
         let stats = player.stats.unwrap();
         if let Some(bedwars_stats) = stats.bedwars {
             let level = xp_to_level(bedwars_stats.experience.unwrap_or_default());
+            let level_str = format!("Level {:.2}", level);
             let wins = bedwars_stats.wins_bedwars.unwrap_or_default();
             let final_kills = bedwars_stats.final_kills_bedwars.unwrap_or_default();
             let wlr: f32 = wins as f32 / bedwars_stats.losses_bedwars.unwrap_or_default() as f32;
             let fkdr: f32 = final_kills as f32 / bedwars_stats.final_deaths_bedwars.unwrap_or_default() as f32;
-            Ok(format!("**__{}__**: Level **{:.2}**, Wins: **{}**, WLR: **{:.2}**, Finals: **{}**, FKDR: **{:.2}**", ign, level, wins, wlr, final_kills, fkdr))
+            let fkdr_str = format!("FKDR: {:.2}", fkdr);
+            let is_bold_name: bool = (level > 200.0) || (fkdr > 2.0);
+            Ok(
+                format!(
+                    "{}: {}, Wins: {}, WLR: {:.2}, Finals: {}, {}",
+                    if is_bold_name { bold_and_underline(ign) } else { ign.to_string() },
+                    if level > 200.0 { bold_and_underline(&level_str) } else { level_str },
+                    wins, wlr, final_kills,
+                    if fkdr > 2.0 { bold_and_underline(&fkdr_str) } else { fkdr_str }
+                )
+            )
         } else {
             Err("Unable to retrieve bedwars stats".into())
         }
@@ -106,4 +117,8 @@ fn xp_to_level(xp: i32) -> f32 {
         level += (extra_xp as f32) / 5000.0
     }
     level
+}
+
+fn bold_and_underline(text: &str) -> String {
+    format!("**__{}__**", text)
 }
