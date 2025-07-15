@@ -61,6 +61,10 @@ pub async fn get_stats<'a>(
     let request = client.get(&url).build().unwrap();
     let resp = client.execute(request).await?.json::<PlayerData>().await?;
 
+    if let None = resp.player {
+        return Ok(format!("{}: Nicked!", bold_and_underline(ign)));
+    }
+
     if !resp.success {
         Err(resp.cause.unwrap_or(String::from("Unknown cause")).into())
     } else {
