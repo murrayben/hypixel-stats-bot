@@ -116,7 +116,7 @@ async fn serenity(
         .expect("Err creating client");
     {
         let mut data = client.data.write().await;
-        data.insert::<IgnoreList>(HashMap::default());
+        data.insert::<IgnoreList>(HashMap::from([("IgnoreList".into(), Vec::new())]));
     }
 
     Ok(client.into())
