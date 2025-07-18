@@ -1,5 +1,6 @@
 use reqwest::Client;
 use serde::Deserialize;
+use std::cmp;
 
 use crate::commands::utils;
 
@@ -52,7 +53,7 @@ pub async fn get_stats<'a>(
 ) -> Result<String, Box<dyn std::error::Error>> {
     let uuid_res = utils::get_uuid(ign, client).await;
     if let Err(_) = uuid_res {
-        return Ok(format!("{}: Nicked!", bold_and_underline(ign)));
+        return Ok(format!("{}: Nicked!", bold_and_underline(ign, 3)));
     }
     let url = format!(
         "https://api.hypixel.net/v2/player?uuid={}&key={}",
@@ -62,7 +63,7 @@ pub async fn get_stats<'a>(
     let resp = client.execute(request).await?.json::<PlayerData>().await?;
 
     if let None = resp.player {
-        return Ok(format!("{}: Nicked!", bold_and_underline(ign)));
+        return Ok(format!("{}: Nicked!", bold_and_underline(ign, 3)));
     }
 
     if !resp.success {
@@ -78,14 +79,32 @@ pub async fn get_stats<'a>(
             let wlr: f32 = wins as f32 / bedwars_stats.losses_bedwars.unwrap_or_default() as f32;
             let fkdr: f32 = final_kills as f32 / bedwars_stats.final_deaths_bedwars.unwrap_or_default() as f32;
             let fkdr_str = format!("FKDR: {:.2}", fkdr);
-            let is_bold_name: bool = (level > 200.0) || (fkdr > 2.0);
+            let level_colour_code = if level > 300.0 {
+                3
+            } else if level > 200.0 {
+                2
+            } else if level > 100.0 {
+                1
+            } else {
+                -1
+            };
+            let fkdr_colour_code = if fkdr > 3.0 {
+                3
+            } else if fkdr > 2.0 {
+                2
+            } else if fkdr > 1.0 {
+                1
+            } else {
+                -1
+            };
+            let ign_colour_code = cmp::max(level_colour_code, fkdr_colour_code);
             Ok(
                 format!(
                     "{}: {}, Wins: {}, WLR: {:.2}, Finals: {}, {}",
-                    if is_bold_name { bold_and_underline(ign) } else { ign.to_string() },
-                    if level > 200.0 { bold_and_underline(&level_str) } else { level_str },
+                    bold_and_underline(ign, ign_colour_code),
+                    bold_and_underline(&level_str, level_colour_code),
                     wins, wlr, final_kills,
-                    if fkdr > 2.0 { bold_and_underline(&fkdr_str) } else { fkdr_str }
+                    bold_and_underline(&fkdr_str, fkdr_colour_code)
                 )
             )
         } else {
@@ -123,6 +142,16 @@ fn xp_to_level(xp: i32) -> f32 {
     level
 }
 
-fn bold_and_underline(text: &str) -> String {
-    format!("\u{001B}[1;4;31m{}\u{001B}[0m", text)
+
+fn bold_and_underline(text: &str, colour: i32) -> String {
+    if colour == -1 {
+        return text.to_string();
+    }
+    let colour_code = match colour {
+        3 => 31,
+        2 => 33,
+        1 => 34,
+        _ => 37,
+    };
+    format!("\u{001B}[1;4;{}m{}\u{001B}[0m", colour_code, text)
 }
